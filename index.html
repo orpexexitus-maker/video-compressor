@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ORSPEX Video Compressor</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+
+    <!-- ALL ANIMATION CSS GOES HERE -->
+    <style>
+      @keyframes drift-slow { 0% { transform: translate(0,0) scale(1); } 33% { transform: translate(40px,-30px) scale(1.06); } 66% { transform: translate(-30px,35px) scale(0.96); } 100% { transform: translate(0,0) scale(1); } }
+      @keyframes drift-medium { 0% { transform: translate(0,0) scale(1); } 50% { transform: translate(-45px,40px) scale(1.08); } 100% { transform: translate(0,0) scale(1); } }
+      @keyframes drift-fast { 0% { transform: translate(0,0); } 50% { transform: translate(35px,-40px); } 100% { transform: translate(0,0); } }
+      @keyframes color-mint-sky { 0%,100%{fill:#6EE7A0;} 50%{fill:#5BC0EB;} }
+      @keyframes color-sky-blue { 0%,100%{fill:#5BC0EB;} 50%{fill:#2563EB;} }
+      @keyframes color-blue-green { 0%,100%{fill:#2563EB;} 50%{fill:#22C55E;} }
+      @keyframes color-green-mint { 0%,100%{fill:#22C55E;} 50%{fill:#6EE7A0;} }
+      @keyframes color-sky-mint { 0%,100%{fill:#5BC0EB;} 50%{fill:#6EE7A0;} }
+      @keyframes pulse-soft { 0%,100%{opacity:0.18;} 50%{opacity:0.4;} }
+      @keyframes twinkle { 0%,100%{opacity:0.1;} 50%{opacity:0.45;} }
+      @keyframes dash-rotate { from{stroke-dashoffset:0;} to{stroke-dashoffset:-400;} }
+      @keyframes stroke-sky-blue { 0%,100%{stroke:#5BC0EB;} 50%{stroke:#2563EB;} }
+      @keyframes stroke-green-mint { 0%,100%{stroke:#22C55E;} 50%{stroke:#6EE7A0;} }
+      @keyframes bar-grow { 0% { transform: scaleY(0.3); opacity: 0.15; } 40% { transform: scaleY(1); opacity: 0.5; } 70% { transform: scaleY(1); opacity: 0.5; } 100% { transform: scaleY(0.3); opacity: 0.15; } }
+      @keyframes bar-color { 0%,100%{fill:#22C55E;} 50%{fill:#6EE7A0;} }
+      @keyframes line-draw { 0% { stroke-dashoffset: 800; } 50% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -800; } }
+      @keyframes float-y { 0%,100% { transform: translateY(0); opacity: 0.28; } 50% { transform: translateY(-18px); opacity: 0.5; } }
+      @keyframes coin-pulse { 0%,100% { opacity: 0.15; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.05); } }
+      @keyframes tick-fade { 0%,100%{opacity:0.1;} 50%{opacity:0.45;} }
+
+      .orb-1 { animation: drift-slow 24s ease-in-out infinite, color-mint-sky 18s ease-in-out infinite; transform-origin: 200px 200px; }
+      .orb-2 { animation: drift-medium 30s ease-in-out infinite, color-sky-blue 22s ease-in-out infinite; transform-origin: 1200px 300px; }
+      .orb-3 { animation: drift-slow 36s ease-in-out infinite, color-blue-green 26s ease-in-out infinite; transform-origin: 400px 700px; }
+      .orb-4 { animation: drift-medium 28s ease-in-out infinite, color-green-mint 20s ease-in-out infinite; transform-origin: 1100px 800px; }
+      .orb-5 { animation: drift-fast 20s ease-in-out infinite, color-sky-mint 24s ease-in-out infinite; transform-origin: 700px 400px; }
+      .pulse-1 { animation: pulse-soft 6s ease-in-out infinite, stroke-sky-blue 20s ease-in-out infinite; }
+      .pulse-2 { animation: pulse-soft 8s ease-in-out infinite 1s, stroke-green-mint 24s ease-in-out infinite; }
+      .pulse-3 { animation: pulse-soft 7s ease-in-out infinite 2s, stroke-sky-blue 22s ease-in-out infinite; }
+      .dot-1 { animation: twinkle 4s ease-in-out infinite; }
+      .dot-2 { animation: twinkle 5s ease-in-out infinite 0.5s; }
+      .dot-3 { animation: twinkle 3.5s ease-in-out infinite 1s; }
+      .dot-4 { animation: twinkle 6s ease-in-out infinite 1.5s; }
+      .dot-5 { animation: twinkle 4.5s ease-in-out infinite 2s; }
+      .dot-6 { animation: twinkle 5.5s ease-in-out infinite 0.8s; }
+      .dot-7 { animation: twinkle 4.2s ease-in-out infinite 1.2s; }
+      .dot-8 { animation: twinkle 5.8s ease-in-out infinite 0.3s; }
+      .ring-1 { animation: dash-rotate 60s linear infinite; transform-origin: 1300px 200px; }
+      .ring-2 { animation: dash-rotate 80s linear infinite reverse; transform-origin: 250px 850px; }
+      .bar-1 { animation: bar-grow 9s ease-in-out infinite, bar-color 12s ease-in-out infinite; transform-origin: 1000px 640px; }
+      .bar-2 { animation: bar-grow 9s ease-in-out infinite 0.6s, bar-color 12s ease-in-out infinite 0.6s; transform-origin: 1060px 640px; }
+      .bar-3 { animation: bar-grow 9s ease-in-out infinite 1.2s, bar-color 12s ease-in-out infinite 1.2s; transform-origin: 1120px 640px; }
+      .bar-4 { animation: bar-grow 9s ease-in-out infinite 1.8s, bar-color 12s ease-in-out infinite 1.8s; transform-origin: 1180px 640px; }
+      .bar-5 { animation: bar-grow 9s ease-in-out infinite 2.4s, bar-color 12s ease-in-out infinite 2.4s; transform-origin: 1240px 640px; }
+      .trend-line { animation: line-draw 14s ease-in-out infinite; }
+      .currency { animation: float-y 8s ease-in-out infinite; transform-origin: 260px 640px; }
+      .coin { animation: coin-pulse 5s ease-in-out infinite; transform-origin: 260px 640px; }
+      .tick-1 { animation: tick-fade 6s ease-in-out infinite; }
+      .tick-2 { animation: tick-fade 7s ease-in-out infinite 0.5s; }
+      .tick-3 { animation: tick-fade 5s ease-in-out infinite 1s; }
+      .tick-4 { animation: tick-fade 6.5s ease-in-out infinite 1.5s; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
